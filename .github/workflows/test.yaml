@@ -56,20 +56,32 @@ jobs:
 
       - name: Take the client config the server generated
         run: |
-          # The peer conf is written during first start, so wait for it.
+          # The image generates the peer conf during first start. Wait for the
+          # server interface to be listening AND for the conf to be finished -
+          # AllowedIPs is its last line - so a partial read can never happen.
           for _ in $(seq 60); do
-            if docker exec wg-server test -f /config/peer1/peer1.conf; then
+            if docker exec wg-server wg show wg0 > /dev/null 2>&1 &&
+              docker exec wg-server grep -q '^AllowedIPs' /config/peer1/peer1.conf 2> /dev/null; then
+              ready=1
               break
             fi
             sleep 1
           done
+
+          if [ -z "${ready:-}" ]; then
+            echo '::error::the server did not become ready in time'
+            docker logs wg-server
+            exit 1
+          fi
 
           # Drop the DNS line. wg-quick would hand it to resolvconf and repoint
           # the runner's own resolver at the container, so any hiccup in there
           # would break every later step in a way that looks unrelated.
           conf=$(docker exec wg-server sed '/^DNS/d' /config/peer1/peer1.conf)
 
+          # Keep the secret-class fields out of the log.
           echo "::add-mask::$(printf '%s' "$conf" | awk '/^PrivateKey/ {print $3}')"
+          echo "::add-mask::$(printf '%s' "$conf" | awk '/^PresharedKey/ {print $3}')"
 
           {
             echo 'WG_CLIENT_CONF<<WGEOF'
@@ -121,7 +133,7 @@ jobs:
         if: always()
         run: docker exec wg-server wg show
 
-      - name: Remove the server
+      - name: Remove the docker container
         if: always()
         run: |
           docker rm -f wg-server
