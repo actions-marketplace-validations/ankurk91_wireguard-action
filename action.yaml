@@ -1,4 +1,4 @@
-name: 'WireGuard VPN'
+name: 'Setup WireGuard VPN Tunnel'
 description: 'Install the WireGuard client and bring up a VPN tunnel from a given config.'
 author: 'ankurk91'
 

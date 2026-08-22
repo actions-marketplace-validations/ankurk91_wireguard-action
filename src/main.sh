@@ -5,6 +5,13 @@ set -euo pipefail
 WG_INTERFACE="${INPUT_INTERFACE:-wg0}"
 WG_CONF_PATH="/etc/wireguard/${WG_INTERFACE}.conf"
 
+# The same pattern wg-quick accepts. Checking it here too keeps the name from
+# escaping /etc/wireguard when the config path is built from it above.
+if ! [[ $WG_INTERFACE =~ ^[a-zA-Z0-9_=+.-]{1,15}$ ]]; then
+  echo "::error::input 'interface' is not a valid interface name: '$WG_INTERFACE'"
+  exit 1
+fi
+
 if [ -z "${INPUT_CONFIG:-}" ]; then
   echo "::error::input 'config' is empty"
   exit 1
