@@ -1,0 +1,80 @@
+# WireGuard Action
+
+[![lint](https://github.com/ankurk91/wireguard-action/actions/workflows/lint.yaml/badge.svg)](https://github.com/ankurk91/wireguard-action/actions/workflows/lint.yaml)
+
+A GitHub Action that installs the WireGuard client on an Ubuntu runner and brings up a VPN tunnel from a config you
+supply. The tunnel is torn down automatically when the job ends.
+
+## Setup
+
+1. Get a WireGuard client config from your VPN server — the whole `wg0.conf` file:
+
+   ```ini
+   [Interface]
+   PrivateKey = <client private key>
+   Address = 10.0.0.2/32
+
+   [Peer]
+   PublicKey = <server public key>
+   AllowedIPs = 0.0.0.0/0
+   Endpoint = vpn.example.com:51820
+   PersistentKeepalive = 25
+   ```
+
+2. Add it as a repository secret. In your repo: **Settings → Secrets and variables → Actions → New repository secret**.
+   Name it `WIREGUARD_CONFIG` and paste the entire file contents.
+
+   > Never commit the config or pass it as a plain string — it contains your private key.
+
+## Usage
+
+```yaml
+name: Test WireGuard
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-wireguard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Connect to WireGuard VPN
+        uses: ankurk91/wireguard-action@v1
+        with:
+          config: ${{ secrets.WIREGUARD_CONFIG }}
+
+      # Everything from here on is routed through the VPN.
+      - name: Do work behind the VPN
+        run: curl -4 -s https://api.ipify.org
+```
+
+There is no disconnect step to add.
+
+## Inputs
+
+| Input       | Required | Default | Description                                                                 |
+|-------------|----------|---------|-----------------------------------------------------------------------------|
+| `config`    | **yes**  | —       | Full contents of the WireGuard config file. Always pass this from a secret. |
+| `interface` | no       | `wg0`   | Interface name. Config is written to `/etc/wireguard/<interface>.conf`.     |
+
+## Requirements
+
+An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, or self-hosted Ubuntu) with `sudo`
+available — true for all GitHub-hosted runners.
+
+**Your config must be IPv4 only.** GitHub-hosted runners have no IPv6 connectivity, so any IPv6 settings will make the
+tunnel fail to start. Remove them before adding the secret:
+
+- `Address` — drop the IPv6 address, keep only the IPv4 one (e.g. `Address = 10.0.0.2/32`)
+- `AllowedIPs` — drop `::/0`, keep only `0.0.0.0/0`
+- `DNS` — drop any IPv6 resolvers
+- `Endpoint` — must be an IPv4 address, or a hostname that resolves to one
+
+## Troubleshooting
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
+## License
+
+[MIT](LICENSE)

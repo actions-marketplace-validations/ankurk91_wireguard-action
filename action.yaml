@@ -1,0 +1,22 @@
+name: 'WireGuard VPN'
+description: 'Install the WireGuard client and bring up a VPN tunnel from a given config.'
+author: 'ankurk91'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  config:
+    description: 'Full contents of the WireGuard config file. Always pass this from a secret.'
+    required: true
+  interface:
+    description: 'WireGuard interface name. Config is written to /etc/wireguard/<interface>.conf'
+    required: false
+    default: 'wg0'
+
+runs:
+  using: 'node24'
+  main: 'src/main.mjs'
+  post: 'src/post.mjs'
+  post-if: always()

@@ -1,0 +1,13 @@
+.idea/
+.vscode/
+.cursor/
+
+node_modules/
+
+*.log
+.env
+*.swp
+*.pem
+.act/
+*.conf
+.DS_Store
