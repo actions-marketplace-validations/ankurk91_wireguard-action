@@ -102,7 +102,7 @@ jobs:
       - name: Assert the interface came up
         run: |
           ip link show wg0
-          test "$(stat -c '%a' /etc/wireguard/wg0.conf)" = '600'
+          test "$(sudo stat -c '%a' /etc/wireguard/wg0.conf)" = '600'
           test "$(sudo wg show wg0 public-key)" = '${{ steps.keys.outputs.client_pub }}'
           echo 'interface, config permissions and public key all correct'
 
@@ -111,13 +111,20 @@ jobs:
           ping -c 3 -W 5 10.9.0.1
 
           sudo wg show wg0
-          handshake=$(sudo wg show wg0 latest-handshakes | awk '{print $2}')
+
+          # `wg show <if> dump` is the documented machine-readable form: line 1 is
+          # the interface, lines 2+ are peers, tab separated, with the fields
+          # public-key, preshared-key, endpoint, allowed-ips, latest-handshake,
+          # transfer-rx, transfer-tx, persistent-keepalive.
+          peer=$(sudo wg show wg0 dump | sed -n '2p')
+          handshake=$(printf '%s' "$peer" | cut -f5)
+          received=$(printf '%s' "$peer" | cut -f6)
+
           if [ "${handshake:-0}" -eq 0 ]; then
             echo '::error::no handshake with the server'
             exit 1
           fi
 
-          received=$(sudo wg show wg0 transfer | awk '{print $2}')
           if [ "${received:-0}" -eq 0 ]; then
             echo '::error::nothing was received from the server'
             exit 1
