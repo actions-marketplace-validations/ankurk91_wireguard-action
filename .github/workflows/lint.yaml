@@ -8,10 +8,19 @@ on:
     branches:
       - main
       - dev
+    paths:
+      - '**.sh'
+      - '.github/workflows/lint.yaml'
   pull_request:
     branches:
       - main
       - dev
+    paths:
+      - '**.sh'
+      - '.github/workflows/lint.yaml'
+
+permissions:
+  contents: read
 
 jobs:
   lint:

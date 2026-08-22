@@ -1,6 +1,7 @@
 # WireGuard Action
 
-[![lint](https://github.com/ankurk91/wireguard-action/actions/workflows/lint.yaml/badge.svg)](https://github.com/ankurk91/wireguard-action/actions/workflows/lint.yaml)
+[![test](https://github.com/ankurk91/wireguard-action/actions/workflows/test.yaml/badge.svg)](https://github.com/ankurk91/wireguard-action/actions)
+[![lint](https://github.com/ankurk91/wireguard-action/actions/workflows/lint.yaml/badge.svg)](https://github.com/ankurk91/wireguard-action/actions)
 
 A GitHub Action that installs the WireGuard client on an Ubuntu runner and brings up a VPN tunnel from a config you
 supply. The tunnel is torn down automatically when the job ends.
@@ -60,8 +61,7 @@ There is no disconnect step to add.
 
 ## Requirements
 
-An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, or self-hosted Ubuntu) with `sudo`
-available — true for all GitHub-hosted runners.
+An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, or self-hosted Ubuntu).
 
 **Your config must be IPv4 only.** GitHub-hosted runners have no IPv6 connectivity, so any IPv6 settings will make the
 tunnel fail to start. Remove them before adding the secret:
