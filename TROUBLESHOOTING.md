@@ -36,6 +36,18 @@ your VPN blocks that, narrow `AllowedIPs` to just the hosts you need to reach.
 Harmless — the action sets mode `600` before starting the tunnel, so you should not see
 this. If you do, something else wrote the file.
 
+## `the tunnel is up but never handshaked with the peer`
+
+The interface came up but no packet ever made it to the peer and back, so the tunnel is not
+carrying traffic. `wg-quick` cannot detect this on its own — it reports success as soon as
+the interface exists. Check that:
+
+- `Endpoint` is correct and its UDP port is reachable from the runner
+- the server has this client's public key in its peer list
+- `PresharedKey` matches on both sides, if you use one
+
+This check only runs for full tunnels (`AllowedIPs = 0.0.0.0/0`).
+
 ## Handshake never completes (`latest handshake` stays empty)
 
 Check `Endpoint` is reachable from the runner and that the port is UDP-open, and that the

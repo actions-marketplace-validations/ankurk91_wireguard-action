@@ -71,6 +71,12 @@ tunnel fail to start. Remove them before adding the secret:
 - `DNS` — drop any IPv6 resolvers
 - `Endpoint` — must be an IPv4 address, or a hostname that resolves to one
 
+## Notes
+
+If your config routes all traffic (`AllowedIPs = 0.0.0.0/0`), the action also confirms the tunnel actually reached the
+peer and fails the step if it did not — so a dead VPN stops the job here instead of breaking a later step for no
+apparent reason. Split tunnels are left unchecked, since there is no way to tell what they were meant to reach.
+
 ## Troubleshooting
 
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
