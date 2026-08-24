@@ -34,15 +34,33 @@ peer_last_handshake() {
 
 echo "Public IP before VPN: $(public_ip)"
 
-echo "=== Installing wireguard-tools ==="
-if command -v wg-quick > /dev/null; then
-  echo "already installed, skipping"
-else
+install_wireguard_tools() {
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
     --no-install-recommends \
     -o Dpkg::Use-Pty=0 \
     -o Dpkg::Options::=--force-unsafe-io \
     wireguard-tools
+}
+
+echo "=== Installing wireguard-tools ==="
+if command -v wg-quick > /dev/null; then
+  echo "already installed, skipping"
+else
+  # Install straight from the indexes already on the image, so the usual run
+  # skips the several seconds an `apt-get update` costs. Those indexes are a
+  # snapshot from the image build, so the version they name can already be gone
+  # from the archive - and nothing local can tell: the index stays perfectly
+  # valid and apt only 404s once it asks the archive for the file. So the check
+  # is the attempt itself, and the refresh happens only when one was needed.
+  if ! install_wireguard_tools; then
+    echo 'install failed, refreshing the apt indexes and retrying'
+    sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq -o Dpkg::Use-Pty=0
+
+    if ! install_wireguard_tools; then
+      echo "::error::cannot install wireguard-tools, even with refreshed apt indexes"
+      exit 1
+    fi
+  fi
 fi
 
 echo "=== Writing $WG_CONF_PATH ==="
