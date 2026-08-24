@@ -18,9 +18,16 @@ permissions:
 
 jobs:
   tests:
-    name: e2e-tests
-    runs-on: ubuntu-latest
+    name: e2e-tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-26.04
 
     steps:
       - name: Checkout code
@@ -89,7 +96,7 @@ jobs:
             echo 'WGEOF'
           } >> "$GITHUB_ENV"
 
-      - name: Connect with the action under test
+      - name: Connect to vpn using this action
         uses: ./
         with:
           config: ${{ env.WG_CLIENT_CONF }}
@@ -137,5 +144,4 @@ jobs:
         if: always()
         run: |
           docker rm -f wg-server
-          # Cleanup only - never fail an otherwise green job over it.
           docker network rm wgnet || echo 'network already gone'

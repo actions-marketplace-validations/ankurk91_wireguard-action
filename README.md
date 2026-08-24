@@ -10,21 +10,22 @@ supply. The tunnel is torn down automatically when the job ends.
 
 1. Get a WireGuard client config from your VPN server — the whole `wg0.conf` file:
 
-   ```ini
-   [Interface]
-   PrivateKey = <client private key>
-   Address = 10.0.0.2/32
+```ini
+[Interface]
+PrivateKey = <client private key>
+Address = 10.0.0.2/32
 
-   [Peer]
-   PublicKey = <server public key>
-   AllowedIPs = 0.0.0.0/0
-   Endpoint = vpn.example.com:51820
-   PersistentKeepalive = 25
-   ```
+[Peer]
+PublicKey = <server public key>
+AllowedIPs = 0.0.0.0/0
+Endpoint = vpn.example.com:51820
+PersistentKeepalive = 25
+```
 
 2. Add it as a repository secret. In your repo: **Settings → Secrets and variables → Actions → New repository secret**.
    Name it `WIREGUARD_CONFIG` and paste the entire file contents.
 
+   > [!WARNING]
    > Never commit the config or pass it as a plain string — it contains your private key.
 
 ## Usage
@@ -61,7 +62,8 @@ There is no disconnect step to add.
 
 ## Requirements
 
-An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, or self-hosted Ubuntu).
+An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, `ubuntu-26.04`, or self-hosted Ubuntu).
+The action has also been tested on [Blacksmith](https://www.blacksmith.sh/) Ubuntu runners (Ubuntu 24.04).
 
 **Your config must be IPv4 only.** GitHub-hosted runners have no IPv6 connectivity, so any IPv6 settings will make the
 tunnel fail to start. Remove them before adding the secret:
