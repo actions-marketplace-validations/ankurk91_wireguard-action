@@ -18,18 +18,19 @@ permissions:
 
 jobs:
   tests:
-    name: e2e-tests (${{ matrix.os }})
+    name: e2e-tests (${{ matrix.os }}, diagnostics=${{ matrix.diagnostics }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-24.04
-            diagnostics: 'false'
-          - os: ubuntu-26.04
-            diagnostics: 'true'
+        os:
+          - ubuntu-24.04
+          - ubuntu-26.04
+        diagnostics:
+          - 'false'
+          - 'true'
 
     steps:
       - name: Checkout code
