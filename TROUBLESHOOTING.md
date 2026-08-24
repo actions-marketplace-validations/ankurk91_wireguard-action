@@ -1,5 +1,17 @@
 # Troubleshooting
 
+Most of these are quicker to diagnose with the action's diagnostics turned on, which prints `wg show`, the interface
+addresses, the routes and the public IP before and after connecting:
+
+```yaml
+- uses: ankurk91/wireguard-action@v1
+  with:
+    config: ${{ secrets.WIREGUARD_CONFIG }}
+    diagnostics: true
+```
+
+It is off by default — see [Diagnostics](README.md#diagnostics) — so turn it back off once the tunnel works.
+
 ## `resolvconf: command not found`
 
 Your config has a `DNS =` line, and `wg-quick` needs a `resolvconf` implementation to apply it.
@@ -20,7 +32,7 @@ inside a container, install the `wireguard` kernel module package on the host.
 ## Public IP didn't change
 
 Your config's `AllowedIPs` doesn't cover the traffic. Use `AllowedIPs = 0.0.0.0/0` to route everything through the
-tunnel; a narrower range only routes those destinations.
+tunnel; a narrower range only routes those destinations. Turn on `diagnostics` to see the IP before and after.
 
 ## The job hangs after connecting
 

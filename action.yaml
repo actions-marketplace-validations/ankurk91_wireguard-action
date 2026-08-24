@@ -14,6 +14,10 @@ inputs:
     description: 'WireGuard interface name. Config is written to /etc/wireguard/<interface>.conf'
     required: false
     default: 'wg0'
+  diagnostics:
+    description: 'Print the tunnel state to the job log: wg show, interface addresses, routes and the public IP before and after connecting. Off by default.'
+    required: false
+    default: 'false'
 
 runs:
   using: 'node24'

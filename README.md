@@ -55,15 +55,16 @@ There is no disconnect step to add.
 
 ## Inputs
 
-| Input       | Required | Default | Description                                                                 |
-|-------------|----------|---------|-----------------------------------------------------------------------------|
-| `config`    | **yes**  | —       | Full contents of the WireGuard config file. Always pass this from a secret. |
-| `interface` | no       | `wg0`   | Interface name. Config is written to `/etc/wireguard/<interface>.conf`.     |
+| Input         | Required | Default | Description                                                                 |
+|---------------|----------|---------|-----------------------------------------------------------------------------|
+| `config`      | **yes**  | —       | Full contents of the WireGuard config file. Always pass this from a secret. |
+| `interface`   | no       | `wg0`   | Interface name. Config is written to `/etc/wireguard/<interface>.conf`.     |
+| `diagnostics` | no       | `false` | Print the tunnel state to the job log. See [Diagnostics](#diagnostics).     |
 
 ## Requirements
 
-An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, `ubuntu-26.04`, or self-hosted Ubuntu).
-The action has also been tested on [Blacksmith](https://www.blacksmith.sh/) Ubuntu runners (Ubuntu 24.04).
+An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, `ubuntu-26.04`, or self-hosted Ubuntu). The action has also been
+tested on [Blacksmith](https://www.blacksmith.sh/) Ubuntu runners (Ubuntu 24.04).
 
 **Your config must be IPv4 only.** GitHub-hosted runners have no IPv6 connectivity, so any IPv6 settings will make the
 tunnel fail to start. Remove them before adding the secret:
@@ -78,6 +79,16 @@ tunnel fail to start. Remove them before adding the secret:
 If your config routes all traffic (`AllowedIPs = 0.0.0.0/0`), the action also confirms the tunnel actually reached the
 peer and fails the step if it did not — so a dead VPN stops the job here instead of breaking a later step for no
 apparent reason. Split tunnels are left unchecked, since there is no way to tell what they were meant to reach.
+
+## Diagnostics
+
+With `diagnostics: true` the action prints `wg show`, the interface addresses, the routing table, and the runner's
+public IP before and after connecting.
+
+It is off by default because that output describes the network the runner is on — the peer's endpoint and public key,
+the tunnel's addresses, every route the runner holds. Job logs are visible to more people than the config is, and on a
+self-hosted runner behind a corporate network that is internal detail worth keeping out of them. Turn it on while
+debugging a tunnel, then turn it back off.
 
 ## Troubleshooting
 

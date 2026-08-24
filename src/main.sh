@@ -4,6 +4,7 @@ set -euo pipefail
 
 WG_INTERFACE="${INPUT_INTERFACE:-wg0}"
 WG_CONF_PATH="/etc/wireguard/${WG_INTERFACE}.conf"
+WG_DIAGNOSTICS="${INPUT_DIAGNOSTICS:-false}"
 
 # The same pattern wg-quick accepts. Checking it here too keeps the name from
 # escaping /etc/wireguard when the config path is built from it above.
@@ -16,6 +17,14 @@ if [ -z "${INPUT_CONFIG:-}" ]; then
   echo "::error::input 'config' is empty"
   exit 1
 fi
+
+case "$WG_DIAGNOSTICS" in
+  true | false) ;;
+  *)
+    echo "::error::input 'diagnostics' must be 'true' or 'false', got '$WG_DIAGNOSTICS'"
+    exit 1
+    ;;
+esac
 
 public_ip() {
   curl -4 -s --connect-timeout 5 --max-time 10 https://api.ipify.org || echo 'unavailable'
@@ -32,12 +41,18 @@ peer_last_handshake() {
   sudo wg show "$WG_INTERFACE" dump | sed -n '2p' | cut -f5
 }
 
-echo "Public IP before VPN: $(public_ip)"
+if [ "$WG_DIAGNOSTICS" = 'true' ]; then
+  echo "Public IP before VPN: $(public_ip)"
+fi
 
+# apt is not the only thing on the runner that wants the dpkg lock - the image
+# boots with unattended-upgrades - so wait for it rather than treating a busy
+# lock as a failed install.
 install_wireguard_tools() {
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
     --no-install-recommends \
     -o Dpkg::Use-Pty=0 \
+    -o Dpkg::Lock::Timeout=60 \
     -o Dpkg::Options::=--force-unsafe-io \
     wireguard-tools
 }
@@ -54,7 +69,9 @@ else
   # is the attempt itself, and the refresh happens only when one was needed.
   if ! install_wireguard_tools; then
     echo 'install failed, refreshing the apt indexes and retrying'
-    sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq -o Dpkg::Use-Pty=0
+    sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq \
+      -o Dpkg::Use-Pty=0 \
+      -o Dpkg::Lock::Timeout=60
 
     if ! install_wireguard_tools; then
       echo "::error::cannot install wireguard-tools, even with refreshed apt indexes"
@@ -71,19 +88,33 @@ sudo chmod 600 "$WG_CONF_PATH"
 echo "=== Starting $WG_INTERFACE ==="
 sudo wg-quick up "$WG_INTERFACE"
 
-echo "=== WireGuard ==="
-sudo wg show "$WG_INTERFACE"
+# Everything below describes the network the runner is now on: the peer's
+# endpoint and public key, the tunnel's addresses, the full routing table. On a
+# self-hosted runner that is internal detail, and a job log is readable by more
+# people than the config is, so it is printed only when asked for.
+if [ "$WG_DIAGNOSTICS" = 'true' ]; then
+  echo
+  echo "=== WireGuard ==="
+  sudo wg show "$WG_INTERFACE"
 
-echo
-echo "=== $WG_INTERFACE IP address ==="
-ip -4 addr show "$WG_INTERFACE"
+  echo
+  echo "=== $WG_INTERFACE IP address ==="
+  ip -4 addr show "$WG_INTERFACE"
 
-echo
-echo "=== Routes ==="
-ip route
+  echo
+  echo "=== Routes ==="
+  ip route
+fi
 
-echo
-echo "Public IP after VPN: $(public_ip)"
+# Sending traffic is what makes WireGuard handshake, so this lookup is part of
+# the check below and not only a diagnostic. It runs either way; diagnostics
+# only decides whether the answer reaches the log.
+ip_after_vpn="$(public_ip)"
+
+if [ "$WG_DIAGNOSTICS" = 'true' ]; then
+  echo
+  echo "Public IP after VPN: $ip_after_vpn"
+fi
 
 # `wg-quick up` succeeds even when the peer is unreachable, and WireGuard stays
 # silent until it has traffic to send, so an unhealthy tunnel looks fine here.
