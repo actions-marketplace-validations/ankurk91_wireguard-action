@@ -12,7 +12,7 @@ addresses, the routes and the public IP before and after connecting:
 
 It is off by default — see [Diagnostics](README.md#diagnostics) — so turn it back off once the tunnel works.
 
-## `resolvconf: command not found`
+## resolvconf: command not found
 
 Your config has a `DNS =` line, and `wg-quick` needs a `resolvconf` implementation to apply it.
 
@@ -24,7 +24,7 @@ container. Either drop the `DNS =` line, or install a provider before connecting
 - run: sudo apt-get install -y openresolv
 ```
 
-## `Cannot find device "wg0"` / `RTNETLINK answers: Operation not supported`
+## Cannot find device "wg0"` / `RTNETLINK answers: Operation not supported
 
 The runner's kernel has no WireGuard module. GitHub-hosted Ubuntu runners do; if you hit this on a self-hosted runner or
 inside a container, install the `wireguard` kernel module package on the host.

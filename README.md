@@ -1,4 +1,4 @@
-# WireGuard Action
+# WireGuard VPN Action
 
 [![test](https://github.com/ankurk91/wireguard-action/actions/workflows/test.yaml/badge.svg)](https://github.com/ankurk91/wireguard-action/actions)
 [![lint](https://github.com/ankurk91/wireguard-action/actions/workflows/lint.yaml/badge.svg)](https://github.com/ankurk91/wireguard-action/actions)
@@ -22,8 +22,7 @@ Endpoint = vpn.example.com:51820
 PersistentKeepalive = 25
 ```
 
-2. Add it as a repository secret. In your repo: **Settings → Secrets and variables → Actions → New repository secret**.
-   Name it `WIREGUARD_CONFIG` and paste the entire file contents.
+2. Add it as a repository secret. Name it `WIREGUARD_CONFIG` and paste the entire file contents.
 
 > [!WARNING]
 > Never commit the config or pass it as a plain string — it contains your private key.
