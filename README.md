@@ -62,8 +62,7 @@ There is no disconnect step to add.
 
 ## Requirements
 
-An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, `ubuntu-26.04`, or self-hosted Ubuntu). The action has also been
-tested on [Blacksmith](https://www.blacksmith.sh/) Ubuntu runners (Ubuntu 24.04).
+An Ubuntu runner (`ubuntu-latest`, `ubuntu-24.04`, `ubuntu-26.04`, or self-hosted Ubuntu).
 
 **Your config must be IPv4 only.** GitHub-hosted runners have no IPv6 connectivity, so any IPv6 settings will make the
 tunnel fail to start. Remove them before adding the secret:
